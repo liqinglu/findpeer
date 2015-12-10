@@ -1,5 +1,6 @@
 import csv
 import findpeer
+import sys
 
 def csvread(pp,rec,csvfile='data.csv'):
 	reader = csv.reader(open(csvfile,'r'))
@@ -25,6 +26,18 @@ if len(people)%2:
 		tmp.append("")
 	record.append(tmp)
 
+for i in range(len(people)):
+    for j in range(len(people)):
+        if record[i][j] == "":
+            record[i][j] = 0
+        else:
+            record[i][j] = int(record[i][j])
+
+#print people
+#print record
 fp = findpeer.FindPeer()
-candidate = fp.MM(len(people))
-fp.findmaxpeer(candidate,people,record)
+fp.MM(len(people))
+#print fp.possiblecomb
+fp.getcombkv(record)
+fp.findmaxpeercomb()
+#fp.findmaxpeer(candidate,people,record)
