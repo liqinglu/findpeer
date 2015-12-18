@@ -39,5 +39,5 @@ fp = findpeer.FindPeer()
 fp.MM(len(people))
 #print fp.possiblecomb
 fp.getcombkv(record)
-fp.findmaxpeercomb()
+fp.findmaxpeercomb(people)
 #fp.findmaxpeer(candidate,people,record)

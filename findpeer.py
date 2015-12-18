@@ -14,6 +14,57 @@ def gcomb(x, k):
         for c in gcomb(rest, k):
             yield c
 
+def candidate(lst):
+    if len(lst)%2 != 0:
+        return
+
+    if len(lst) == 0:
+        yield []
+    else:
+        first,rest = lst[0],lst[1:]
+        for j in rest:
+            tmp = rest[:]
+            tmp.remove(j)
+            if len(tmp) == 0:
+                yield [[first,j]]
+            else:
+                for restcandidate in candidate(tmp):
+                    restcandidate.insert(0,[first,j])
+                    yield restcandidate
+
+def isok(lst):
+    newlst = {}
+    for i in lst:
+        for j in i:
+            if j not in newlst.keys():
+                newlst.setdefault(j,0)
+            else:
+                return False
+
+    return True 
+
+def candidatecomb(testlist,k):
+    if k > len(testlist):
+        return
+
+    if k == 0:
+        yield []
+    else:
+        first,rest = testlist[0],testlist[1:]
+        for c in candidatecomb(rest,k-1):
+            c.insert(0,first)
+            if len(c) == k:
+                if isok(c):
+                    yield c
+            else:
+                yield c
+        for c in candidatecomb(rest,k):
+            if len(c) == k:
+                if isok(c):
+                    yield c
+            else:
+                yield c
+
 class FindPeer(object):
 
     PEER = 2
@@ -21,8 +72,12 @@ class FindPeer(object):
 
     def __init__(self):
         self.possiblecomb = []
-        self.possiblecombkv = {}
+        self.possiblecombvp = {}
+        self.possiblecombpv = {}
         self.maxv = 0
+        self.groupnumber = 0
+        self.keysv = []
+        self.finalresult = {}
         
     def findidx(self,cm,max):
         level = self.RESULTNUM
@@ -110,30 +165,57 @@ class FindPeer(object):
         
         return result 
 
-    def findmaxpeercomb(self):
-        pass
+    def findmaxpeercomb(self,pp):
+        for i in candidatecomb(self.possiblecomb,self.groupnumber):
+            high = 0
+            for j in i:
+                high += self.possiblecombpv[str(j)]
+            self.finalresult.setdefault(high,[]).append(i)
+
+        isexit = 0
+        for k in sorted(self.finalresult.iterkeys(),reverse=True):
+            for item in self.finalresult[k]:
+                print "%s  :::  %s" % (k,item)
+                self.RESULTNUM -= 1
+                if self.RESULTNUM == 0:
+                    isexit = 1
+                    break
+            if isexit:
+                break
 
     def getcombkv(self,record):
         for c in self.possiblecomb:
             weight = record[c[0]][c[1]] + record[c[1]][c[0]]
-            self.possiblecombkv.setdefault(weight,[]).append(c)
+            self.possiblecombvp.setdefault(weight,[]).append(c)
+            self.possiblecombpv.setdefault(str(c),weight)
+        #for c in self.possiblecomb:
+        #    weight = record[c[0]][c[1]] + record[c[1]][c[0]]
+        #    self.possiblecombvp.setdefault(weight,[]).append(c)
+        #    self.possiblecombpv.setdefault(str(c),weight)
 
-        #for k,v in self.possiblecombkv.iteritems():
+        #print self.possiblecomb
+        self.possiblecomb = []
+        #for k,v in self.possiblecombvp.iteritems():
         #    print " ",k," ",v
-        groupnumber = len(record[0])/self.PEER
-        keys = sorted([x for x in self.possiblecombkv.iterkeys()],reverse=True)
-        #print keys
+        self.groupnumber = len(record[0])/self.PEER
+        self.keysv = sorted([x for x in self.possiblecombvp.iterkeys()],reverse=True)
+        for keysv in self.keysv:
+            if keysv == 0:
+                continue
+            for candidatepair in self.possiblecombvp[keysv]:
+                self.possiblecomb.append(candidatepair)
 
-        i = 0
-        for skey in keys:
-            for svalue in self.possiblecombkv[skey]:
-                self.maxv += skey
-                i += 1
-                if i == groupnumber:
-                    break
-
-            if i == groupnumber:
-                break
+        #print self.possiblecomb
+        #i = 0
+        #print self.possiblecomb
+        #for skey in self.keysv:
+        #    for svalue in self.possiblecombvp[skey]:
+        #        self.maxv += skey
+        #        i += 1
+        #        if i == self.groupnumber:
+        #            break
+        #    if i == self.groupnumber:
+        #        break
         #print self.maxv
 
     def newsortedlist(self,li):
@@ -145,3 +227,4 @@ class FindPeer(object):
             print("input args is not INT type or is less than 2")
             return  
         self.newsortedlist(list(range(0,n)))
+        #self.sortedlist(list(range(0,n)))
